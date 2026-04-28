@@ -376,7 +376,7 @@ $all_languages = $pdo->query("SELECT name FROM language ORDER BY name")->fetchAl
                     <span class="field-error"><?= $edit_errors['contract_accepted'] ?></span>
                 <?php endif; ?>
             </div>
-
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
             <button type="submit">Сохранить изменения</button>
             <a href="admin.php" style="display:block;text-align:center;margin-top:15px;">Отмена</a>
         </form>

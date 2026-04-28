@@ -171,6 +171,7 @@
             </div>
 
             <div class="form-group">
+                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
                 <button type="submit">
                     <?= $is_logged_in ? 'Сохранить изменения' : 'Сохранить' ?>
                 </button>
@@ -182,7 +183,7 @@
             <a href="login.php">🔑 Войти в систему</a>
             <a href="view.php">📊 Просмотреть сохранённые анкеты</a>
             <a href="admin.php" style="background:#e67e22;">🔧 Админ-панель</a>
-            <a href="audit_security.html" style="background:#e67e22;"> Аудит_безопасности</a>
+            <a href="audit_security.html" style="background:#e67e22;"> ⚡ Аудит безопасности</a>
         </div>
         
         <?php if (!$is_logged_in): ?>

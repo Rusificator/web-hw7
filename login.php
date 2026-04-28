@@ -99,6 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <label>Пароль</label>
                 <input type="password" name="password" required autocomplete="current-password" style="color: #ffffff;">
             </div>
+             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
             <button type="submit">Войти</button>
         </form>
 
