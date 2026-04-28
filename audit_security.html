@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Аудит безопасности — Лабораторная работа №7</title>
+    <title>Аудит безопасности — Лабораторная работа №7 </title>
     <style>
         * {
             margin: 0;
@@ -78,22 +78,24 @@
             overflow-x: auto;
             margin: 10px 0;
             border: 1px solid #444;
+            white-space: pre-wrap;
         }
 
-       .screenshot-placeholder img {
-    max-width: 100%;
-    height: auto;
-    display: block;
-    margin: 0 auto;
-    border: 1px solid #b87333;
-    border-radius: 12px;
-    padding: 0;
-}
-
+        .screenshot {
+            text-align: center;
+            margin: 15px 0;
+        }
+        .screenshot img {
+            max-width: 100%;
+            border-radius: 12px;
+            border: 1px solid #b87333;
+            background: #1a1a1a;
+            padding: 4px;
+        }
         .caption {
             font-size: 0.85rem;
             color: #aaa;
-            margin-top: 5px;
+            margin-top: 6px;
             text-align: center;
         }
 
@@ -110,8 +112,8 @@
             font-size: 0.85rem;
             margin-top: 30px;
         }
-        /* Кнопки навигации и возврата */
-.nav-buttons, .back-link {
+
+        .nav-buttons, .back-link {
     margin: 30px 0 20px;
     text-align: center;
     border-top: 1px solid #2c2c2c;
@@ -119,11 +121,11 @@
 }
 .nav-buttons a, .back-link a {
     display: inline-block;
-    background: #b87333;        
-    color: white;               
+    background: #b87333;       
+    color: white;              
     text-decoration: none;
     padding: 10px 22px;
-    border-radius: 30px;        
+    border-radius: 30px;       
     font-weight: 600;
     margin: 0 10px;
     transition: all 0.2s;
@@ -141,143 +143,130 @@
 <div class="container">
     <div class="header">
         <h1>Аудит безопасности</h1>
-        <p>Лабораторная работа №6 (пользователь u82457) — анализ и устранение уязвимостей</p>
+        <p>Лабораторная работа №6  — анализ и устранение уязвимостей</p>
     </div>
 
+    <!-- ====================== XSS ====================== -->
     <h2>1. XSS (Cross-Site Scripting)</h2>
     <div class="vuln-block">
         <div class="vuln-title">🔍 Проблема</div>
-        <p>В некоторых местах приложения данные, введённые пользователем или полученные из базы данных, могли выводиться без экранирования, что позволяет злоумышленнику внедрить вредоносный JavaScript-код.</p>
-        <div class="screenshot-placeholder">
-            📸 Скриншот 1: Фрагмент кода, где данные выводятся без обработки (например, строка echo $row['full_name']; в view.php до исправления)
+        <p>Данные, введённые пользователем или полученные из базы данных, могут содержать вредоносный JavaScript-код, который будет выполнен в браузере других пользователей. Необходимо экранировать все выводы.</p>
+
+        <div class="screenshot">
+            <img src="0_XSS.png" alt="XSS экранирование в форме">
+            <div class="caption">Скриншот 1: Использование htmlspecialchars() для атрибута value поля ФИО</div>
         </div>
+        <div class="screenshot">
+            <img src="1_XSS.png" alt="XSS экранирование в view.php">
+            <div class="caption">Скриншот 2: Экранирование данных при выводе таблицы в view.php</div>
+        </div>
+        <div class="screenshot">
+            <img src="2_XSS.png" alt="XSS экранирование в admin.php">
+            <div class="caption">Скриншот 3: Экранирование в форме редактирования админ-панели</div>
+        </div>
+
         <div class="vuln-title">✅ Решение</div>
-        <p>Применять функцию <code>htmlspecialchars()</code> ко всем данным, выводимым в HTML-контексте. В коде уже везде используется эта функция. Пример исправленного фрагмента:</p>
-        <div class="code-after">
-            echo '&lt;td&gt;' . htmlspecialchars($row['full_name']) . '&lt;/td&gt;';
-        </div>
-        <div class="screenshot-placeholder">
-            📸 Скриншот 2: Результат – экранирование спецсимволов
-        </div>
-        <p><strong>Вывод:</strong> Уязвимость устранена. Все выводы данных проходят через <code>htmlspecialchars()</code>.</p>
+        <p>Все данные, выводимые в HTML, должны быть обработаны функцией <code>htmlspecialchars()</code> с соответствующими флагами. В приложении эта мера уже реализована, что подтверждается скриншотами.</p>
     </div>
 
-    <h2>2. Information Disclosure</h2>
+    <!-- ====================== Information Disclosure ====================== -->
+    <h2>2. Information Disclosure (Раскрытие информации)</h2>
     <div class="vuln-block">
         <div class="vuln-title">🔍 Проблема</div>
-        <p>При ошибках подключения к базе данных или выполнении SQL-запросов приложение выводит полное сообщение об ошибке, содержащее детали (тип СУБД, структуру запроса, пути к файлам). Это может помочь злоумышленнику в проведении атаки.</p>
-        <div class="code-before">
-            // Было в функции getDB()
-            catch (PDOException $e) {
-                die("Ошибка подключения к БД: " . $e->getMessage());
-            }
+        <p>При ошибках подключения к БД или выполнении запросов выводятся детали (логин, хост, тип ошибки), что даёт злоумышленнику информацию о структуре системы.</p>
+
+        <div class="screenshot">
+            <img src="3_ID.png" alt="Код с выводом деталей ошибки">
+            <div class="caption">Скриншот 4: Исходный код getDB() – вывод деталей исключения</div>
         </div>
-        <div class="screenshot-placeholder">
-            <img src="3_ID.png" alt="Создание каталога hw4">
-                    <p class="caption">Скриншот 1: Подключение по SSH и создание каталога</p>
+        <div class="screenshot">
+            <img src="4_ID.png" alt="Сообщение об ошибке в браузере">
+            <div class="caption">Скриншот 5: Пример вывода – виден логин БД, хост, код ошибки</div>
         </div>
+
         <div class="vuln-title">✅ Решение</div>
-        <p>Заменить вывод детального сообщения на общее, а реальную ошибку записывать в лог (на сервере).</p>
-        <div class="code-after">
-            // Стало
-            catch (PDOException $e) {
-                error_log("Database error: " . $e->getMessage());
-                die("Внутренняя ошибка сервера. Пожалуйста, попробуйте позже.");
-            }
+        <p>Заменяем вывод подробностей на общее сообщение, а оригинальную ошибку записываем в лог сервера.</p>
+        <div class="screenshot">
+            <img src="5_ID.png" alt="Исправленный код getDB">
+            <div class="caption">Скриншот 6: Исправленный код – ошибка логируется, пользователю показывается нейтральное сообщение</div>
         </div>
-        <div class="screenshot-placeholder">
-            📸 Скриншот 4: Общее сообщение об ошибке
+        <div class="screenshot">
+            <img src="6_ID.png" alt="Общее сообщение об ошибке">
+            <div class="caption">Скриншот 7: Пользователь видит только «Внутренняя ошибка сервера»</div>
         </div>
-        <p><strong>Вывод:</strong> Информация о внутреннем устройстве скрыта, уязвимость устранена. Все аналогичные блоки (в view.php, login.php) исправлены.</p>
     </div>
 
+    <!-- ====================== SQL Injection ====================== -->
     <h2>3. SQL Injection</h2>
     <div class="vuln-block">
         <div class="vuln-title">🔍 Проблема</div>
-        <p>При формировании SQL-запросов с конкатенацией строк пользовательских данных возможно внедрение произвольного SQL-кода.</p>
-        <div class="screenshot-placeholder">
-            📸 Скриншот 5: Фрагмент, где запрос формировался через конкатенацию (не обнаружено)
+        <p>Внедрение произвольного SQL-кода через неэкранированные пользовательские данные. Угроза отсутствует, так как везде используются подготовленные запросы.</p>
+
+        <div class="screenshot">
+            <img src="7_SQL_index.png" alt="Подготовленный запрос в index.php">
+            <div class="caption">Скриншот 8: Подготовленный запрос SELECT в index.php</div>
         </div>
+        <div class="screenshot">
+            <img src="8_SQL_admin.png" alt="Подготовленный запрос UPDATE в admin.php">
+            <div class="caption">Скриншот 9: Подготовленный запрос UPDATE в admin.php</div>
+        </div>
+
         <div class="vuln-title">✅ Решение</div>
-        <p>В приложении везде используются подготовленные запросы (PDO prepare + execute). Пример из кода:</p>
-        <div class="code-after">
-            $stmt = $pdo->prepare("SELECT * FROM application WHERE id = ?");
-            $stmt->execute([$user_id]);
-        </div>
-        <div class="screenshot-placeholder">
-            📸 Скриншот 6: Использование prepare и execute
-        </div>
-        <p><strong>Вывод:</strong> SQL-инъекции невозможны. Уязвимость отсутствует.</p>
+        <p>Все запросы к БД используют PPDO::prepare() и передачу параметров через execute(). Данная практика полностью исключает SQL-инъекции.</p>
     </div>
 
+    <!-- ====================== CSRF ====================== -->
     <h2>4. CSRF (Cross-Site Request Forgery)</h2>
     <div class="vuln-block">
         <div class="vuln-title">🔍 Проблема</div>
-        <p>Формы приложения не защищены от CSRF-атак. Злоумышленник может подделать запрос от имени авторизованного пользователя (например, изменить анкету или удалить запись).</p>
-        <div class="screenshot-placeholder">
-            📸 Скриншот 7: Отсутствие скрытого поля csrf_token в форме
+        <p>Отсутствие защиты от подделки межсайтовых запросов – злоумышленник может заставить авторизованного пользователя отправить запрос (изменить данные, удалить анкету) без его ведома.</p>
+
+        <div class="screenshot">
+            <img src="9_CSRF.png" alt="Генерация CSRF-токена">
+            <div class="caption">Скриншот 10: Генерация уникального токена в сессии</div>
         </div>
+        <div class="screenshot">
+            <img src="10_CSRF.png" alt="Добавление скрытого поля в форму">
+            <div class="caption">Скриншот 11: Внедрение скрытого поля csrf_token в форму</div>
+        </div>
+        <div class="screenshot">
+            <img src="11_CSRF.png" alt="Проверка токена в обработчике POST">
+            <div class="caption">Скриншот 12: Валидация токена перед обработкой данных</div>
+        </div>
+
         <div class="vuln-title">✅ Решение</div>
-        <p>Добавить генерацию и проверку CSRF-токена для всех форм (анкета, вход, админ-панель).</p>
-        <p><strong>Добавление в начало скриптов:</strong></p>
-        <div class="code-after">
-            if (empty($_SESSION['csrf_token'])) {
-                $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-            }
-        </div>
-        <p><strong>В HTML-форму:</strong></p>
-        <div class="code-after">
-            &lt;input type="hidden" name="csrf_token" value="&lt;?= htmlspecialchars($_SESSION['csrf_token']) ?&gt;"&gt;
-        </div>
-        <p><strong>Проверка в обработчике POST:</strong></p>
-        <div class="code-after">
-            if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
-                die('Ошибка CSRF. Обновите страницу.');
-            }
-        </div>
-        <div class="screenshot-placeholder">
-            📸 Скриншот 8: Форма с токеном и проверка
-        </div>
-        <p><strong>Вывод:</strong> CSRF-защита реализована – все формы требуют валидный токен.</p>
+        <p>Введена генерация случайного токена на каждую сессию, его обязательная передача в скрытом поле формы и строгая проверка при получении POST-запроса. Если токен не совпадает – запрос отклоняется. Решение внедрено на всех страницах где есть форма (admin.php, login.php, form.php) </p>
     </div>
 
+    <!-- ====================== Include / Upload ====================== -->
     <h2>5. Include / Upload уязвимости</h2>
     <div class="vuln-block">
         <div class="vuln-title">🔍 Проблема</div>
-        <p>Возможность удалённого включения файлов (RFI/LFI) или загрузки вредоносных файлов.</p>
-        <div class="screenshot-placeholder">
-            📸 Скриншот 9: Использование include с пользовательскими параметрами (не обнаружено)
-        </div>
+        <p>В приложении отсутствует динамическое включение файлов на основе пользовательских параметров и нет функционала загрузки файлов. Следовательно, уязвимости RFI/LFI и загрузки вредоносных файлов отсутствуют.</p>
+
         <div class="vuln-title">✅ Решение</div>
-        <p>В приложении нет динамического включения файлов по параметрам. Загрузка файлов не реализована. Следовательно, уязвимости отсутствуют. При будущем добавлении загрузки следует проверять MIME-тип, расширение и переименовывать файлы.</p>
-        <div class="code-after">
-            // Все include используют только константные имена файлов
-            include 'form.php';
-        </div>
-        <div class="screenshot-placeholder">
-            📸 Скриншот 10: Пример безопасного include
-        </div>
-        <p><strong>Вывод:</strong> Уязвимости нет.</p>
+        <p>Все include используют только заранее определённые имена (например, <code>include 'form.php';</code>). В будущем, при добавлении загрузки файлов, необходимо проверять MIME-тип, расширение и переименовывать загружаемые файлы.</p>
     </div>
 
     <h2>Заключение</h2>
     <div class="vuln-block">
         <p>В результате аудита были выявлены и исправлены следующие уязвимости:</p>
         <ul>
-            <li><strong>Information Disclosure</strong> – скрыты детали ошибок БД.</li>
-            <li><strong>CSRF</strong> – добавлена защита токенами.</li>
-            <li><strong>XSS</strong> – подтверждено использование htmlspecialchars() везде.</li>
-            <li><strong>SQL Inj.</strong> – подготовленные запросы уже применялись.</li>
-            <li><strong>Include/Upload</strong> – отсутствуют опасные конструкции.</li>
+            <li><strong>XSS</strong> – экранирование данных реализовано везде;</li>
+            <li><strong>Information Disclosure</strong> – скрыты детали ошибок БД;</li>
+            <li><strong>SQL Injection</strong> – угрозы нет, используются подготовленные запросы;</li>
+            <li><strong>CSRF</strong> – добавлена защита токенами;</li>
+            <li><strong>Include/Upload</strong> – уязвимости отсутствуют в текущей реализации.</li>
         </ul>
-        <p>Код приложения стал более безопасным и соответствует требованиям задания №7.</p>
+        <p>Все меры задокументированы скриншотами, код исправлен, приложение соответствует требованиям безопасности.</p>
     </div>
 
     <footer>
          <div class="back-link" style="margin-top:30px;">
             <a href="index.php">← Вернуться к форме</a>
+            
         </div>
-        <p>ЛАБА 7</p>
+        
     </footer>
 </div>
 </body>
