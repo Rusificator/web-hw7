@@ -20,7 +20,7 @@ function getDB() {
     if ($pdo === null) {
         $db_host = 'localhost';
         $db_user = 'u82457';
-        $db_pass = '7777166';
+        $db_pass = '777166';
         $db_name = 'u82457';
         try {
             $pdo = new PDO("mysql:host=$db_host;dbname=$db_name;charset=utf8mb4", $db_user, $db_pass);
