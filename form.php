@@ -182,6 +182,7 @@
             <a href="login.php">🔑 Войти в систему</a>
             <a href="view.php">📊 Просмотреть сохранённые анкеты</a>
             <a href="admin.php" style="background:#e67e22;">🔧 Админ-панель</a>
+            <a href="audit_security.html" style="background:#e67e22;"> Аудит_безопасности</a>
         </div>
         
         <?php if (!$is_logged_in): ?>
