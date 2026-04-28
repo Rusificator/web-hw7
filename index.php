@@ -3,6 +3,11 @@
 header('Content-Type: text/html; charset=UTF-8');
 session_start();
 
+
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 // === АВТОРИЗАЦИЯ ===
 $is_logged_in = isset($_SESSION['application_id']);
 $user_id = $is_logged_in ? $_SESSION['application_id'] : null;
@@ -179,6 +184,13 @@ else {
     $biography = trim($_POST['biography'] ?? '');
     $contract_accepted = isset($_POST['contract_accepted']) ? 1 : 0;
     $languages = $_POST['languages'] ?? [];
+
+
+
+    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+    die('Ошибка CSRF. Пожалуйста, обновите страницу и повторите попытку.');
+}
+
 
     // === ВАЛИДАЦИЯ (одинаковая для первой отправки и редактирования) ===
     // ФИО

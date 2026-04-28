@@ -7,7 +7,7 @@ session_start();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Просмотр анкет — Задание 6</title>
+    <title>Просмотр анкет — Задание 7</title>
     <link rel="stylesheet" href="style.css">
    
 </head>
@@ -28,7 +28,8 @@ session_start();
                     $pdo = new PDO("mysql:host=$db_host;dbname=$db_name;charset=utf8mb4", $db_user, $db_pass);
                     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
                 } catch (PDOException $e) {
-                    die("Ошибка подключения к БД: " . $e->getMessage());
+                     error_log("Database error: " . $e->getMessage());
+            die("Внутренняя ошибка сервера. Пожалуйста, попробуйте позже.");
                 }
             }
             return $pdo;

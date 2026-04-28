@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Задание 6 — Анкета (с авторизацией)</title>
+    <title>Задание 7 — Анкета (с авторизацией)</title>
     <link rel="stylesheet" href="style.css">
     <style>
         .nav-buttons {
@@ -73,7 +73,7 @@
         <?php endif; ?>
 
         <form method="post" action="index.php">
-            <!-- Все поля формы — без изменений -->
+            <!-- Все поля формы -->
             <div class="form-group">
                 <label for="full_name">ФИО:</label>
                 <input type="text" id="full_name" name="full_name"
