@@ -232,11 +232,11 @@ code {
 }
 .nav-buttons a, .back-link a {
     display: inline-block;
-    background: #b87333;        /* медный фон, как у кнопки Submit */
-    color: white;               /* белый текст */
+    background: #b87333;       
+    color: white;              
     text-decoration: none;
     padding: 10px 22px;
-    border-radius: 30px;        /* скругление как у кнопки */
+    border-radius: 30px;       
     font-weight: 600;
     margin: 0 10px;
     transition: all 0.2s;
@@ -244,7 +244,7 @@ code {
     cursor: pointer;
 }
 .nav-buttons a:hover, .back-link a:hover {
-    background: #9e5e28;        /* более тёмный оттенок при наведении */
+    background: #9e5e28;        
     transform: translateY(-1px);
     box-shadow: 0 5px 12px rgba(0, 0, 0, 0.3);
 }
