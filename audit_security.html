@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Аудит безопасности — Лабораторная работа №7</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #121212;
+            background-image: radial-gradient(circle at 15% 30%, #1e272e 0%, #0a0c10 100%);
+            color: #d4d4d4;
+            line-height: 1.5;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: #1e1e1e;
+            border-radius: 20px;
+            box-shadow: 0 20px 35px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            border: 1px solid #2c2c2c;
+        }
+
+        .header {
+            background: #252525;
+            padding: 25px 30px;
+            border-bottom: 1px solid #3a3a3a;
+        }
+        .header h1 {
+            color: #d99e4c;
+            font-size: 2rem;
+            margin-bottom: 5px;
+            letter-spacing: -0.5px;
+        }
+        .header p {
+            color: #a0a0a0;
+        }
+
+        h2 {
+            color: #d99e4c;
+            border-bottom: 2px solid #b87333;
+            padding-bottom: 8px;
+            margin: 30px 30px 20px 30px;
+            font-size: 1.5rem;
+        }
+
+        .vuln-block {
+            background: #2a2a2a;
+            margin: 20px 30px;
+            border-radius: 16px;
+            padding: 20px;
+            border-left: 5px solid #b87333;
+        }
+
+        .vuln-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #e6a177;
+        }
+
+        .code-before, .code-after {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 10px 0;
+            border: 1px solid #444;
+        }
+
+        .screenshot-placeholder {
+            background: #2c2c2c;
+            border: 2px dashed #b87333;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin: 15px 0;
+            color: #aaa;
+            font-style: italic;
+        }
+
+        .caption {
+            font-size: 0.85rem;
+            color: #aaa;
+            margin-top: 5px;
+            text-align: center;
+        }
+
+        hr {
+            border-color: #3a3a3a;
+            margin: 20px 0;
+        }
+
+        footer {
+            background: #252525;
+            text-align: center;
+            padding: 15px;
+            color: #aaa;
+            font-size: 0.85rem;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Аудит безопасности</h1>
+        <p>Лабораторная работа №6 (пользователь u82457) — анализ и устранение уязвимостей</p>
+    </div>
+
+    <h2>1. XSS (Cross-Site Scripting)</h2>
+    <div class="vuln-block">
+        <div class="vuln-title">🔍 Проблема</div>
+        <p>В некоторых местах приложения данные, введённые пользователем или полученные из базы данных, могли выводиться без экранирования, что позволяет злоумышленнику внедрить вредоносный JavaScript-код.</p>
+        <div class="screenshot-placeholder">
+            📸 Скриншот 1: Фрагмент кода, где данные выводятся без обработки (например, строка echo $row['full_name']; в view.php до исправления)
+        </div>
+        <div class="vuln-title">✅ Решение</div>
+        <p>Применять функцию <code>htmlspecialchars()</code> ко всем данным, выводимым в HTML-контексте. В коде уже везде используется эта функция. Пример исправленного фрагмента:</p>
+        <div class="code-after">
+            echo '&lt;td&gt;' . htmlspecialchars($row['full_name']) . '&lt;/td&gt;';
+        </div>
+        <div class="screenshot-placeholder">
+            📸 Скриншот 2: Результат – экранирование спецсимволов
+        </div>
+        <p><strong>Вывод:</strong> Уязвимость устранена. Все выводы данных проходят через <code>htmlspecialchars()</code>.</p>
+    </div>
+
+    <h2>2. Information Disclosure</h2>
+    <div class="vuln-block">
+        <div class="vuln-title">🔍 Проблема</div>
+        <p>При ошибках подключения к базе данных или выполнении SQL-запросов приложение выводит полное сообщение об ошибке, содержащее детали (тип СУБД, структуру запроса, пути к файлам). Это может помочь злоумышленнику в проведении атаки.</p>
+        <div class="code-before">
+            // Было в функции getDB()
+            catch (PDOException $e) {
+                die("Ошибка подключения к БД: " . $e->getMessage());
+            }
+        </div>
+        <div class="screenshot-placeholder">
+            📸 Скриншот 3: Вывод подробной ошибки (например, "Access denied for user...")
+        </div>
+        <div class="vuln-title">✅ Решение</div>
+        <p>Заменить вывод детального сообщения на общее, а реальную ошибку записывать в лог (на сервере).</p>
+        <div class="code-after">
+            // Стало
+            catch (PDOException $e) {
+                error_log("Database error: " . $e->getMessage());
+                die("Внутренняя ошибка сервера. Пожалуйста, попробуйте позже.");
+            }
+        </div>
+        <div class="screenshot-placeholder">
+            📸 Скриншот 4: Общее сообщение об ошибке
+        </div>
+        <p><strong>Вывод:</strong> Информация о внутреннем устройстве скрыта, уязвимость устранена. Все аналогичные блоки (в view.php, login.php) исправлены.</p>
+    </div>
+
+    <h2>3. SQL Injection</h2>
+    <div class="vuln-block">
+        <div class="vuln-title">🔍 Проблема</div>
+        <p>При формировании SQL-запросов с конкатенацией строк пользовательских данных возможно внедрение произвольного SQL-кода.</p>
+        <div class="screenshot-placeholder">
+            📸 Скриншот 5: Фрагмент, где запрос формировался через конкатенацию (не обнаружено)
+        </div>
+        <div class="vuln-title">✅ Решение</div>
+        <p>В приложении везде используются подготовленные запросы (PDO prepare + execute). Пример из кода:</p>
+        <div class="code-after">
+            $stmt = $pdo->prepare("SELECT * FROM application WHERE id = ?");
+            $stmt->execute([$user_id]);
+        </div>
+        <div class="screenshot-placeholder">
+            📸 Скриншот 6: Использование prepare и execute
+        </div>
+        <p><strong>Вывод:</strong> SQL-инъекции невозможны. Уязвимость отсутствует.</p>
+    </div>
+
+    <h2>4. CSRF (Cross-Site Request Forgery)</h2>
+    <div class="vuln-block">
+        <div class="vuln-title">🔍 Проблема</div>
+        <p>Формы приложения не защищены от CSRF-атак. Злоумышленник может подделать запрос от имени авторизованного пользователя (например, изменить анкету или удалить запись).</p>
+        <div class="screenshot-placeholder">
+            📸 Скриншот 7: Отсутствие скрытого поля csrf_token в форме
+        </div>
+        <div class="vuln-title">✅ Решение</div>
+        <p>Добавить генерацию и проверку CSRF-токена для всех форм (анкета, вход, админ-панель).</p>
+        <p><strong>Добавление в начало скриптов:</strong></p>
+        <div class="code-after">
+            if (empty($_SESSION['csrf_token'])) {
+                $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+            }
+        </div>
+        <p><strong>В HTML-форму:</strong></p>
+        <div class="code-after">
+            &lt;input type="hidden" name="csrf_token" value="&lt;?= htmlspecialchars($_SESSION['csrf_token']) ?&gt;"&gt;
+        </div>
+        <p><strong>Проверка в обработчике POST:</strong></p>
+        <div class="code-after">
+            if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+                die('Ошибка CSRF. Обновите страницу.');
+            }
+        </div>
+        <div class="screenshot-placeholder">
+            📸 Скриншот 8: Форма с токеном и проверка
+        </div>
+        <p><strong>Вывод:</strong> CSRF-защита реализована – все формы требуют валидный токен.</p>
+    </div>
+
+    <h2>5. Include / Upload уязвимости</h2>
+    <div class="vuln-block">
+        <div class="vuln-title">🔍 Проблема</div>
+        <p>Возможность удалённого включения файлов (RFI/LFI) или загрузки вредоносных файлов.</p>
+        <div class="screenshot-placeholder">
+            📸 Скриншот 9: Использование include с пользовательскими параметрами (не обнаружено)
+        </div>
+        <div class="vuln-title">✅ Решение</div>
+        <p>В приложении нет динамического включения файлов по параметрам. Загрузка файлов не реализована. Следовательно, уязвимости отсутствуют. При будущем добавлении загрузки следует проверять MIME-тип, расширение и переименовывать файлы.</p>
+        <div class="code-after">
+            // Все include используют только константные имена файлов
+            include 'form.php';
+        </div>
+        <div class="screenshot-placeholder">
+            📸 Скриншот 10: Пример безопасного include
+        </div>
+        <p><strong>Вывод:</strong> Уязвимости нет.</p>
+    </div>
+
+    <h2>Заключение</h2>
+    <div class="vuln-block">
+        <p>В результате аудита были выявлены и исправлены следующие уязвимости:</p>
+        <ul>
+            <li><strong>Information Disclosure</strong> – скрыты детали ошибок БД.</li>
+            <li><strong>CSRF</strong> – добавлена защита токенами.</li>
+            <li><strong>XSS</strong> – подтверждено использование htmlspecialchars() везде.</li>
+            <li><strong>SQL Inj.</strong> – подготовленные запросы уже применялись.</li>
+            <li><strong>Include/Upload</strong> – отсутствуют опасные конструкции.</li>
+        </ul>
+        <p>Код приложения стал более безопасным и соответствует требованиям задания №7.</p>
+    </div>
+
+    <footer>
+        <p>ЛАБА 7</p>
+    </footer>
+</div>
+</body>
+</html>
